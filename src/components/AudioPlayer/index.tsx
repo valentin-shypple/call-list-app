@@ -44,7 +44,7 @@ const AudioPlayer = ({ recordId, partnerId }: IProps) => {
     });
 
     sound.once("loaderror", () => {
-      console.log("error", sound);
+      Howler.unload();
     });
   };
 
@@ -67,7 +67,7 @@ const AudioPlayer = ({ recordId, partnerId }: IProps) => {
   return (
     <Box className="audio-player">
       <Box className="duration">
-        {secondsToMinutes(record?.duration() || 0)}
+        {record ? secondsToMinutes(record?.duration()) : ""}
       </Box>
       <Box className="icon-wrapper">
         {play ? (

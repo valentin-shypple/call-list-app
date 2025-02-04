@@ -6,10 +6,10 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { observer } from "mobx-react";
 import { CallTypes } from "../../constants";
-import { AppStoreContext } from "../../store";
+import { useStore } from "../../root-store-context";
 
 const TypeFilter = observer(() => {
-  const store = useContext(AppStoreContext);
+  const { filtersStore } = useStore();
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event: any) => {
@@ -23,7 +23,7 @@ const TypeFilter = observer(() => {
   };
 
   const selectedType = () => {
-    let selected = CallTypes.find((item) => item.value === store.filters.inOut);
+    let selected = CallTypes.find((item) => item.value === filtersStore.inOut);
     return selected?.name;
   };
 
@@ -50,9 +50,9 @@ const TypeFilter = observer(() => {
           return (
             <MenuItem
               key={item.name}
-              selected={item.value === store.filters.inOut}
+              selected={item.value === filtersStore.inOut}
               onClick={() => {
-                store.setInOut(item.value);
+                filtersStore.setInOut(item.value);
                 handleClose();
               }}
               className="filter-menu-item"

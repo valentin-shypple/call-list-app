@@ -1,7 +1,5 @@
-import { useContext, useState, useEffect } from "react";
-import { useDeepCompareEffect } from "use-deep-compare";
+import { useState, useEffect } from "react";
 import { observer } from "mobx-react";
-import { AppStoreContext } from "../../store";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -13,22 +11,24 @@ import TableRow from "@mui/material/TableRow";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import CallItem from "../CallItem";
+import EmptyState from "./EmptyState";
 import { Columns, SortFilterValue } from "../../constants";
 import { fetchCallList } from "../../endpoints";
 import "./CallList.css";
+import { useStore } from "../../root-store-context";
 
 const CallList = observer(() => {
-  const store = useContext(AppStoreContext);
   const [callsList, setCallsList] = useState([]);
+  const { filtersStore } = useStore();
 
   useEffect(() => {
     const fetchList = async () => {
       const response = await fetchCallList(
-        "2025-01-01",
-        "2025-02-01",
-        store.filters.inOut,
-        store.filters.sortBy,
-        store.filters.order
+        filtersStore.dateStart,
+        filtersStore.dateEnd,
+        filtersStore.inOut,
+        filtersStore.sortBy,
+        filtersStore.order
       );
       const calls = response.data.results;
 
@@ -36,13 +36,18 @@ const CallList = observer(() => {
     };
 
     fetchList();
-  }, []);
+  }, [
+    filtersStore.dateStart,
+    filtersStore.dateEnd,
+    filtersStore.inOut,
+    filtersStore.sortBy,
+    filtersStore.order,
+  ]);
 
   const clickOnSort = (type: SortFilterValue) => {
-    console.log("type", type);
-    store.setSortBy(type);
-    store.setOrder(
-      !store.filters.order || store.filters.order === "ASC" ? "DESC" : "ASC"
+    filtersStore.setSortBy(type);
+    filtersStore.setOrder(
+      !filtersStore.order || filtersStore.order === "ASC" ? "DESC" : "ASC"
     );
   };
 
@@ -74,10 +79,22 @@ const CallList = observer(() => {
                           : "header-arrow-end"
                       }
                     >
-                      {store.filters.order === "ASC" ? (
-                        <ExpandMoreIcon />
+                      {filtersStore.order === "ASC" || !filtersStore.order ? (
+                        <ExpandMoreIcon
+                          className={
+                            column.sortValue === filtersStore.sortBy
+                              ? "selected"
+                              : ""
+                          }
+                        />
                       ) : (
-                        <ExpandLessIcon />
+                        <ExpandLessIcon
+                          className={
+                            column.sortValue === filtersStore.sortBy
+                              ? "selected"
+                              : ""
+                          }
+                        />
                       )}
                     </Box>
                   ) : null}
@@ -89,6 +106,7 @@ const CallList = observer(() => {
               ></TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
             {callsList.map((row: any) => {
               return <CallItem row={row} key={row.id} />;
@@ -96,6 +114,7 @@ const CallList = observer(() => {
           </TableBody>
         </Table>
       </TableContainer>
+      {!callsList.length && <EmptyState />}
     </Paper>
   );
 });

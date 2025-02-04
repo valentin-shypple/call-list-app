@@ -9,16 +9,16 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { NumericFormat } from "react-number-format";
 import { DateFilterItems, DateFilterRanges } from "../../constants";
 import { observer } from "mobx-react";
-import { AppStoreContext } from "../../store";
+import { useStore } from "../../root-store-context";
 import { DateTime } from "luxon";
 
 const DateFilter = observer(() => {
-  const store = useContext(AppStoreContext);
+  const { filtersStore } = useStore();
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedName, setSelectedName] = useState("");
 
   useEffect(() => {
-    selectDateFilter(store.filters.dateFilterValue);
+    selectDateFilter(filtersStore.dateFilterValue);
   }, []);
 
   const handleClick = (event: any) => {
@@ -35,9 +35,9 @@ const DateFilter = observer(() => {
     let selected = DateFilterItems.find((item) => item.value === range);
     if (selected) setSelectedName(selected.name);
 
-    store.setDateFilterValue(range);
-    store.setDateStart(DateTime.now().toISODate());
-    store.setDateEnd(
+    filtersStore.setDateFilterValue(range);
+    filtersStore.setDateEnd(DateTime.now().toISODate());
+    filtersStore.setDateStart(
       DateTime.now()
         .minus({ days: Number(range) })
         .toISODate()
@@ -47,14 +47,14 @@ const DateFilter = observer(() => {
 
   const selectPrevDate = () => {
     let current = DateFilterRanges.findIndex(
-      (el) => el === Number(store.filters.dateFilterValue)
+      (el) => el === Number(filtersStore.dateFilterValue)
     );
     if (!!current) selectDateFilter(DateFilterRanges[current - 1].toString());
   };
 
   const selectNextDate = () => {
     let current = DateFilterRanges.findIndex(
-      (el) => el === Number(store.filters.dateFilterValue)
+      (el) => el === Number(filtersStore.dateFilterValue)
     );
     if (current < DateFilterRanges.length - 1)
       selectDateFilter(DateFilterRanges[current + 1].toString());
@@ -87,7 +87,7 @@ const DateFilter = observer(() => {
           return (
             <MenuItem
               key={item.name}
-              selected={item.value === store.filters.dateFilterValue}
+              selected={item.value === filtersStore.dateFilterValue}
               onClick={() => {
                 selectDateFilter(item.value);
               }}

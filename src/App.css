@@ -42,12 +42,18 @@
   position: absolute;
   left: 44px;
   color: #adbfdf;
+  .selected {
+    color: #002cfb;
+  }
 }
 .header-arrow-end {
   position: absolute;
   right: -20px;
   top: 21px;
   color: #adbfdf;
+  .selected {
+    color: #002cfb;
+  }
 }
 
 .type-filter {
@@ -125,6 +131,7 @@
   height: 32px;
   font-size: 12px !important;
   color: #2b2d33 !important;
+  font-family: "SFProDisplay", sans-serif;
 
   &:hover {
     background: #dee4ff !important;
@@ -213,6 +220,7 @@
   height: 40px;
   font-size: 12px !important;
   color: #2b2d33 !important;
+  font-family: "SFProDisplay", sans-serif;
 
   &:hover {
     background: #dee4ff !important;

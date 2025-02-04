@@ -4,15 +4,17 @@ import { Provider } from "mobx-react";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { appStore } from "./store";
+
+import { RootStoreContext } from "./root-store-context";
+import { RootStore } from "./root-store";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 root.render(
-  <Provider appStore={appStore}>
+  <RootStoreContext.Provider value={new RootStore()}>
     <App />
-  </Provider>
+  </RootStoreContext.Provider>
 );
 
 // If you want to start measuring performance in your app, pass a function

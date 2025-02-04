@@ -10,7 +10,10 @@ const fetchCallList = async (
     "Content-Type": "application/json",
   };
 
-  let queryStr = `https://api.skilla.ru/mango/getList?date_start=${dateStart}&date_end=${dateEnd}&in_out=${inOut}`;
+  let queryStr = `https://api.skilla.ru/mango/getList?date_start=${dateStart}&date_end=${dateEnd}`;
+  if (inOut) {
+    queryStr = queryStr + `&in_out=${inOut}`;
+  }
   if (sortBy) {
     queryStr = queryStr + `&sort_by=${sortBy}`;
   }
