@@ -44,7 +44,7 @@ const CallItem = observer(({ row }: any) => {
         <Box sx={{ paddingRight: "10px" }}>{row.partner_data.name}</Box>
       </TableCell>
       <TableCell align="left">
-        <CallEstimate />
+        <CallEstimate id={row.id} />
       </TableCell>
       <TableCell align="right">
         {row.record ? (

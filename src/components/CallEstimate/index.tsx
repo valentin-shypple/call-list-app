@@ -1,8 +1,24 @@
 import Box from "@mui/material/Box";
 import { Estimates } from "../../constants";
 
-const CallEstimate = () => {
-  const random = Estimates[(Math.random() * Estimates.length) | 0];
+interface IProps {
+  id: number;
+}
+
+const CallEstimate = ({ id }: IProps) => {
+  const result = id % 150;
+  console.log(result);
+  let random = Estimates[0];
+
+  if (result < 30) {
+    random = Estimates[1];
+  }
+  if (30 < result && result < 100) {
+    random = Estimates[2];
+  }
+  if (result > 100) {
+    random = Estimates[3];
+  }
 
   return random.value ? (
     <Box
