@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { observer } from "mobx-react";
 import { Howl, Howler } from "howler";
 import Box from "@mui/material/Box";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -7,6 +8,7 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import CloseIcon from "@mui/icons-material/Close";
 import Slider from "@mui/material/Slider";
 import { useStore } from "../../root-store-context";
+import { twoDigitsFormat } from "../../helpers";
 
 interface IProps {
   recordId: string;
@@ -14,133 +16,155 @@ interface IProps {
   currentRecordId: number;
 }
 
-const AudioPlayer = ({ recordId, partnerId, currentRecordId }: IProps) => {
-  const { filtersStore } = useStore();
-  const [play, setPlay] = useState(true);
-  const [record, setRecord] = useState<any>(null);
-  const [currTime, setCurrTime] = useState({
-    min: 0,
-    sec: 0,
-  });
-  const [seconds, setSeconds] = useState(0);
+const AudioPlayer = observer(
+  ({ recordId, partnerId, currentRecordId }: IProps) => {
+    const { filtersStore } = useStore();
+    const [showPlayButton, setShowPlayButton] = useState(true);
+    const [currentRecordSelected, setCurrentRecordSelected] =
+      useState<boolean>(true);
+    const [howlInstance, setHowlInstance] = useState<Howl | null>(null);
+    const [playbackProgress, setPlaybackProgress] = useState({
+      minutes: 0,
+      seconds: 0,
+    });
+    const [seekPosition, setSeekPosition] = useState<number>(0);
 
-  useEffect(() => {
-    if (currentRecordId !== filtersStore.currentRecord) {
-      stopRecord();
-    }
-  }, [filtersStore.currentRecord]);
+    useEffect(() => {
+      setCurrentRecordSelected(currentRecordId === filtersStore.currentRecord);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (record) {
-        setSeconds(record.seek([]));
-        const min = Math.floor(record.seek([]) / 60);
-        const sec = Math.floor(record.seek([]) % 60);
-        setCurrTime({
-          min,
-          sec,
-        });
+      if (currentRecordId !== filtersStore.currentRecord) {
+        setShowPlayButton(true);
       }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [record]);
+    }, [filtersStore.currentRecord, currentRecordId]);
 
-  const getRecord = async () => {
-    filtersStore.setCurrentRecord(currentRecordId);
-    let sound = new Howl({
-      src: `https://api.skilla.ru/mango/getRecord?record=${recordId}&partnership_id=${partnerId}`,
-      format: ["mp3"],
-      xhr: {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer testtoken",
+    useEffect(() => {
+      const interval = setInterval(() => {
+        if (howlInstance) {
+          const currentSeek: number = howlInstance.seek();
+          setSeekPosition(currentSeek);
+          setPlaybackProgress({
+            minutes: Math.floor(currentSeek / 60),
+            seconds: Math.floor(currentSeek % 60),
+          });
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }, [howlInstance]);
+
+    const getRecord = async () => {
+      filtersStore.setCurrentRecord(currentRecordId);
+      let sound = new Howl({
+        src: `https://api.skilla.ru/mango/getRecord?record=${recordId}&partnership_id=${partnerId}`,
+        format: ["mp3"],
+        xhr: {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer testtoken",
+          },
+          withCredentials: true,
         },
-        withCredentials: true,
-      },
-    });
-
-    sound.once("load", () => {
-      setPlay(false);
-      sound.play();
-      setRecord(sound);
-    });
-
-    sound.once("loaderror", () => {
-      Howler.unload();
-    });
-
-    sound.once("end", () => {
-      setRecord(null);
-      setPlay(true);
-      setCurrTime({
-        min: 0,
-        sec: 0,
       });
-      Howler.unload();
-    });
-  };
 
-  const playRecord = () => {
-    record.play();
-    setPlay(false);
-  };
+      if (sound.state() === "loaded") {
+        Howler.stop();
+        sound.play();
+        setShowPlayButton(false);
+        setHowlInstance(sound);
+      }
 
-  const pauseRecord = () => {
-    record.pause();
-    setPlay(true);
-  };
+      sound.once("load", () => {
+        Howler.stop();
+        sound.play();
+        setShowPlayButton(false);
+        setHowlInstance(sound);
+      });
 
-  const stopRecord = () => {
-    setRecord(null);
-    Howler.unload();
-    setPlay(true);
-    setCurrTime({
-      min: 0,
-      sec: 0,
-    });
-  };
+      sound.once("loaderror", () => {
+        Howler.stop();
+      });
 
-  const handleChangeSeek = (event: Event, newValue: number | number[]) => {
-    if (record) {
-      record.seek((record.duration() / 100) * Number(newValue));
-    }
-  };
+      sound.once("end", () => {
+        setHowlInstance(null);
+        setShowPlayButton(true);
+        setPlaybackProgress({
+          minutes: 0,
+          seconds: 0,
+        });
+        Howler.stop();
+      });
+    };
 
-  return (
-    <Box className="audio-player">
-      <Box className="duration">
-        {currTime.min}:{currTime.sec}
-      </Box>
-      <Box className="icon-wrapper">
-        {play ? (
-          <PlayArrowIcon
-            className="play"
-            onClick={record ? playRecord : getRecord}
+    const playRecord = () => {
+      howlInstance?.play();
+      setShowPlayButton(false);
+    };
+
+    const pauseRecord = () => {
+      howlInstance?.pause();
+      setShowPlayButton(true);
+    };
+
+    const stopRecord = () => {
+      setHowlInstance(null);
+      Howler.stop();
+      setShowPlayButton(true);
+      setPlaybackProgress({
+        minutes: 0,
+        seconds: 0,
+      });
+    };
+
+    const handleChangeSeek = (
+      event: React.SyntheticEvent | Event,
+      newValue: number | number[]
+    ) => {
+      if (howlInstance) {
+        howlInstance.seek((howlInstance.duration() / 100) * Number(newValue));
+      }
+    };
+
+    return (
+      <Box className="audio-player">
+        <Box className="duration">
+          {twoDigitsFormat(playbackProgress.minutes)}:
+          {twoDigitsFormat(playbackProgress.seconds)}
+        </Box>
+        <Box className="icon-wrapper">
+          {showPlayButton ? (
+            <PlayArrowIcon
+              className="play"
+              onClick={currentRecordSelected ? playRecord : getRecord}
+            />
+          ) : (
+            <PauseIcon className="pause" onClick={pauseRecord} />
+          )}
+        </Box>
+        <Box
+          sx={{
+            width: "164px",
+            display: "flex",
+            alignItems: "center",
+            padding: "0px 10px",
+          }}
+        >
+          <Slider
+            size="small"
+            defaultValue={0}
+            value={
+              seekPosition && howlInstance
+                ? (100 * seekPosition) / howlInstance.duration()
+                : 0
+            }
+            aria-label="Small"
+            onChangeCommitted={handleChangeSeek}
+            disabled={!currentRecordSelected}
           />
-        ) : (
-          <PauseIcon className="pause" onClick={pauseRecord} />
-        )}
+        </Box>
+        <GetAppIcon className="action" />
+        <CloseIcon className="action" onClick={stopRecord} />
       </Box>
-      <Box
-        sx={{
-          width: "164px",
-          display: "flex",
-          alignItems: "center",
-          padding: "0px 10px",
-        }}
-      >
-        <Slider
-          size="small"
-          defaultValue={0}
-          value={seconds && record ? (100 * seconds) / record.duration() : 0}
-          aria-label="Small"
-          onChange={handleChangeSeek}
-        />
-      </Box>
-      <GetAppIcon className="action" />
-      <CloseIcon className="action" onClick={stopRecord} />
-    </Box>
-  );
-};
+    );
+  }
+);
 
 export default AudioPlayer;
