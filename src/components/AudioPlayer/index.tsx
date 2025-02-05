@@ -5,7 +5,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import CloseIcon from "@mui/icons-material/Close";
-import LinearProgress from "@mui/material/LinearProgress";
+import Slider from "@mui/material/Slider";
 import { useStore } from "../../root-store-context";
 
 interface IProps {
@@ -76,6 +76,7 @@ const AudioPlayer = ({ recordId, partnerId, currentRecordId }: IProps) => {
         min: 0,
         sec: 0,
       });
+      Howler.unload();
     });
   };
 
@@ -99,6 +100,12 @@ const AudioPlayer = ({ recordId, partnerId, currentRecordId }: IProps) => {
     });
   };
 
+  const handleChangeSeek = (event: Event, newValue: number | number[]) => {
+    if (record) {
+      record.seek((record.duration() / 100) * Number(newValue));
+    }
+  };
+
   return (
     <Box className="audio-player">
       <Box className="duration">
@@ -114,11 +121,20 @@ const AudioPlayer = ({ recordId, partnerId, currentRecordId }: IProps) => {
           <PauseIcon className="pause" onClick={pauseRecord} />
         )}
       </Box>
-      <Box sx={{ width: "164px" }}>
-        <LinearProgress
-          variant="buffer"
+      <Box
+        sx={{
+          width: "164px",
+          display: "flex",
+          alignItems: "center",
+          padding: "0px 10px",
+        }}
+      >
+        <Slider
+          size="small"
+          defaultValue={0}
           value={seconds && record ? (100 * seconds) / record.duration() : 0}
-          valueBuffer={100}
+          aria-label="Small"
+          onChange={handleChangeSeek}
         />
       </Box>
       <GetAppIcon className="action" />
