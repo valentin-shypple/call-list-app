@@ -34,6 +34,9 @@
       .time-wrapper {
         display: inline-block;
       }
+      .selected {
+        display: inline-block;
+      }
 
       &:hover {
         .player-wrapper {

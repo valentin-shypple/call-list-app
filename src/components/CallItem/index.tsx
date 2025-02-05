@@ -7,12 +7,21 @@ import CallEstimate from "../CallEstimate";
 import AudioPlayer from "../AudioPlayer";
 import { format } from "libphonenumber-js";
 import { DateTime } from "luxon";
+import { twoDigitsFormat } from "../../helpers";
+import { observer } from "mobx-react";
+import { useStore } from "../../root-store-context";
 
 function secondsToMinutes(time: number) {
-  return Math.floor(time / 60) + ":" + Math.floor(time % 60);
+  return (
+    twoDigitsFormat(Math.floor(time / 60)) +
+    ":" +
+    twoDigitsFormat(Math.floor(time % 60))
+  );
 }
 
-const CallItem = ({ row }: any) => {
+const CallItem = observer(({ row }: any) => {
+  const { filtersStore } = useStore();
+
   return (
     <TableRow hover role="checkbox" tabIndex={-1} key={row.type}>
       <TableCell align="left" className="blank"></TableCell>
@@ -40,14 +49,22 @@ const CallItem = ({ row }: any) => {
       <TableCell align="right">
         {row.record ? (
           <>
-            <Box className="player-wrapper">
+            <Box
+              className={
+                filtersStore.currentRecord === row.id
+                  ? "selected"
+                  : "player-wrapper"
+              }
+            >
               <AudioPlayer
                 recordId={row.record}
                 partnerId={row.partner_data.id}
                 currentRecordId={row.id}
               />
             </Box>
-            <Box className="time-wrapper">{secondsToMinutes(row.time)}</Box>
+            {filtersStore.currentRecord !== row.id && (
+              <Box className="time-wrapper">{secondsToMinutes(row.time)}</Box>
+            )}
           </>
         ) : (
           <Box className="">{secondsToMinutes(row.time)}</Box>
@@ -56,6 +73,6 @@ const CallItem = ({ row }: any) => {
       <TableCell align="left"></TableCell>
     </TableRow>
   );
-};
+});
 
 export default CallItem;
