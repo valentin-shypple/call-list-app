@@ -139,20 +139,36 @@
 }
 
 .filter-label {
+  width: 133px;
+  height: 32px;
   font-size: 12px;
   color: #2b2d33;
-  padding: 6px 16px;
+  font-family: "SFProDisplay", sans-serif;
+  padding: 4px 16px;
+  display: flex;
+  align-items: center;
 }
 
 .date-picker {
   padding: 6px 16px;
+  height: 32px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   .inputs-wrapper {
     input {
       border: none;
-      width: 40px;
+      width: 60px;
+      font-family: "SFProDisplay", sans-serif;
     }
+    input:focus {
+      outline: none;
+    }
+  }
+
+  svg {
+    color: #adbfdf;
+    font-size: 20px;
   }
 }
 
@@ -220,7 +236,7 @@
   height: 40px;
   font-size: 12px !important;
   color: #2b2d33 !important;
-  font-family: "SFProDisplay", sans-serif;
+  font-family: "SFProDisplay", sans-serif !important;
 
   &:hover {
     background: #dee4ff !important;

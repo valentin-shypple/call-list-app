@@ -2,6 +2,7 @@ import { useContext, useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
 import TextField from "@mui/material/TextField";
+import { useMask } from "@react-input/mask";
 import MenuItem from "@mui/material/MenuItem";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
@@ -16,6 +17,16 @@ const DateFilter = observer(() => {
   const { filtersStore } = useStore();
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedName, setSelectedName] = useState("");
+
+  const inputStart = useMask({
+    mask: "__.__.__",
+    replacement: { _: /\d/ },
+  });
+
+  const inputEnd = useMask({
+    mask: "__.__.__",
+    replacement: { _: /\d/ },
+  });
 
   useEffect(() => {
     selectDateFilter(filtersStore.dateFilterValue);
@@ -80,7 +91,6 @@ const DateFilter = observer(() => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleClose}
-        MenuListProps={{ onMouseLeave: handleClose }}
         classes={{ list: "date-menu-list", paper: "date-menu-paper" }}
       >
         {DateFilterItems.map((item) => {
@@ -97,10 +107,47 @@ const DateFilter = observer(() => {
             </MenuItem>
           );
         })}
-        {/* <Box className="filter-label">Указать даты</Box>
+        <Box className="filter-label">Указать даты</Box>
         <Box className="date-picker">
+          <Box className="inputs-wrapper">
+            <input
+              ref={inputStart}
+              defaultValue={DateTime.fromJSDate(
+                new Date(filtersStore.dateStart)
+              ).toFormat("dd.MM.yy")}
+              onBlur={(event) => {
+                let d = DateTime.fromFormat(event.target.value, "dd.MM.yy");
+                if (d.isValid) {
+                  filtersStore.setDateStart(d.toISODate());
+                  setSelectedName(
+                    `${event.target.value} - ${DateTime.fromJSDate(
+                      new Date(filtersStore.dateEnd)
+                    ).toFormat("dd.MM.yy")}`
+                  );
+                }
+              }}
+            />
+            -
+            <input
+              ref={inputEnd}
+              defaultValue={DateTime.fromJSDate(
+                new Date(filtersStore.dateEnd)
+              ).toFormat("dd.MM.yy")}
+              onBlur={(event) => {
+                let d = DateTime.fromFormat(event.target.value, "dd.MM.yy");
+                if (d.isValid) {
+                  filtersStore.setDateEnd(d.toISODate());
+                  setSelectedName(
+                    `${DateTime.fromJSDate(
+                      new Date(filtersStore.dateStart)
+                    ).toFormat("dd.MM.yy")} - ${event.target.value}`
+                  );
+                }
+              }}
+            />
+          </Box>
           <CalendarTodayIcon />
-        </Box> */}
+        </Box>
       </Menu>
     </Box>
   );

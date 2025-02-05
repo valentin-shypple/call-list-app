@@ -3,7 +3,8 @@ const fetchCallList = async (
   dateEnd: string,
   inOut: number | string,
   sortBy: "date" | "duration" | "",
-  order: "ASC" | "DESC" | ""
+  order: "ASC" | "DESC" | "",
+  offset: number
 ) => {
   const authHeaders: HeadersInit = {
     Authorization: `Bearer testtoken`,
@@ -19,6 +20,9 @@ const fetchCallList = async (
   }
   if (order) {
     queryStr = queryStr + `&order=${order}`;
+  }
+  if (offset) {
+    queryStr = queryStr + `&offset=${offset}`;
   }
 
   const req = new Request(queryStr, {

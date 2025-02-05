@@ -6,25 +6,47 @@ import PauseIcon from "@mui/icons-material/Pause";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import CloseIcon from "@mui/icons-material/Close";
 import LinearProgress from "@mui/material/LinearProgress";
+import { useStore } from "../../root-store-context";
 
 interface IProps {
   recordId: string;
   partnerId: string;
+  currentRecordId: number;
 }
 
-function secondsToMinutes(time: number) {
-  return Math.floor(time / 60) + ":" + Math.floor(time % 60);
-}
-
-const AudioPlayer = ({ recordId, partnerId }: IProps) => {
+const AudioPlayer = ({ recordId, partnerId, currentRecordId }: IProps) => {
+  const { filtersStore } = useStore();
   const [play, setPlay] = useState(true);
-  const [progress, setProgress] = useState(50);
-  const [buffer, setBuffer] = useState(100);
   const [record, setRecord] = useState<any>(null);
+  const [currTime, setCurrTime] = useState({
+    min: 0,
+    sec: 0,
+  });
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    if (currentRecordId !== filtersStore.currentRecord) {
+      stopRecord();
+    }
+  }, [filtersStore.currentRecord]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (record) {
+        setSeconds(record.seek([]));
+        const min = Math.floor(record.seek([]) / 60);
+        const sec = Math.floor(record.seek([]) % 60);
+        setCurrTime({
+          min,
+          sec,
+        });
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [record]);
 
   const getRecord = async () => {
-    setRecord(null);
-    Howler.unload();
+    filtersStore.setCurrentRecord(currentRecordId);
     let sound = new Howl({
       src: `https://api.skilla.ru/mango/getRecord?record=${recordId}&partnership_id=${partnerId}`,
       format: ["mp3"],
@@ -46,6 +68,15 @@ const AudioPlayer = ({ recordId, partnerId }: IProps) => {
     sound.once("loaderror", () => {
       Howler.unload();
     });
+
+    sound.once("end", () => {
+      setRecord(null);
+      setPlay(true);
+      setCurrTime({
+        min: 0,
+        sec: 0,
+      });
+    });
   };
 
   const playRecord = () => {
@@ -62,12 +93,16 @@ const AudioPlayer = ({ recordId, partnerId }: IProps) => {
     setRecord(null);
     Howler.unload();
     setPlay(true);
+    setCurrTime({
+      min: 0,
+      sec: 0,
+    });
   };
 
   return (
     <Box className="audio-player">
       <Box className="duration">
-        {record ? secondsToMinutes(record?.duration()) : ""}
+        {currTime.min}:{currTime.sec}
       </Box>
       <Box className="icon-wrapper">
         {play ? (
@@ -82,8 +117,8 @@ const AudioPlayer = ({ recordId, partnerId }: IProps) => {
       <Box sx={{ width: "164px" }}>
         <LinearProgress
           variant="buffer"
-          value={progress}
-          valueBuffer={buffer}
+          value={seconds && record ? (100 * seconds) / record.duration() : 0}
+          valueBuffer={100}
         />
       </Box>
       <GetAppIcon className="action" />

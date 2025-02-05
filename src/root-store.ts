@@ -8,15 +8,27 @@ class FiltersStore {
   inOut: number | string;
   sortBy: SortFilterValue;
   order: OrderFilterValue;
+  offset: number;
+  currentRecord: number | null;
 
   constructor() {
     makeAutoObservable(this);
-    this.dateFilterValue = "30";
+    this.dateFilterValue = "3";
     this.dateStart = "";
     this.dateEnd = "";
     this.inOut = "";
     this.sortBy = "";
     this.order = "";
+    this.offset = 0;
+    this.currentRecord = null;
+  }
+
+  setOffset(value: number) {
+    this.offset = value;
+  }
+
+  setCurrentRecord(value: number | null) {
+    this.currentRecord = value;
   }
 
   setDateFilterValue(value: string) {

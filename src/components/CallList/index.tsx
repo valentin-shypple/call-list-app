@@ -6,6 +6,7 @@ import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
+import TablePagination from "@mui/material/TablePagination";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -19,6 +20,8 @@ import { useStore } from "../../root-store-context";
 
 const CallList = observer(() => {
   const [callsList, setCallsList] = useState([]);
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
   const { filtersStore } = useStore();
 
   useEffect(() => {
@@ -28,11 +31,13 @@ const CallList = observer(() => {
         filtersStore.dateEnd,
         filtersStore.inOut,
         filtersStore.sortBy,
-        filtersStore.order
+        filtersStore.order,
+        filtersStore.offset
       );
       const calls = response.data.results;
 
       setCallsList(calls);
+      setTotal(response.data.total_rows);
     };
 
     fetchList();
@@ -42,13 +47,24 @@ const CallList = observer(() => {
     filtersStore.inOut,
     filtersStore.sortBy,
     filtersStore.order,
+    filtersStore.offset,
   ]);
+
+  useEffect(() => {
+    setPage(0);
+    filtersStore.setOffset(0);
+  }, [filtersStore.dateStart, filtersStore.dateEnd, filtersStore.inOut]);
 
   const clickOnSort = (type: SortFilterValue) => {
     filtersStore.setSortBy(type);
     filtersStore.setOrder(
       !filtersStore.order || filtersStore.order === "ASC" ? "DESC" : "ASC"
     );
+  };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+    filtersStore.setOffset(newPage * 50);
   };
 
   return (
@@ -115,6 +131,14 @@ const CallList = observer(() => {
         </Table>
       </TableContainer>
       {!callsList.length && <EmptyState />}
+      <TablePagination
+        rowsPerPageOptions={[]}
+        component="div"
+        count={total}
+        rowsPerPage={50}
+        page={page}
+        onPageChange={handleChangePage}
+      />
     </Paper>
   );
 });

@@ -44,6 +44,7 @@ const CallItem = ({ row }: any) => {
               <AudioPlayer
                 recordId={row.record}
                 partnerId={row.partner_data.id}
+                currentRecordId={row.id}
               />
             </Box>
             <Box className="time-wrapper">{secondsToMinutes(row.time)}</Box>
