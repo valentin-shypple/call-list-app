@@ -7,7 +7,6 @@ interface IProps {
 
 const CallEstimate = ({ id }: IProps) => {
   const result = id % 150;
-  console.log(result);
   let random = Estimates[0];
 
   if (result < 30) {
