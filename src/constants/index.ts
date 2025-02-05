@@ -1,6 +1,8 @@
 export type SortFilterValue = "date" | "duration" | "";
 export type OrderFilterValue = "ASC" | "DESC" | "";
 
+export const AUTH = "Bearer testtoken";
+
 interface Column {
   id:
     | "blank"

@@ -16,14 +16,14 @@ const CallStatus = ({ direction, status }: IProps) => {
   return (
     <>
       {direction ? (
-        <CallMadeIcon
+        <CallReceivedIcon
           id="call-made"
-          className={status ? "green-call" : "red-call"}
+          className={status ? " blue-call" : "red-call"}
         />
       ) : (
-        <CallReceivedIcon
+        <CallMadeIcon
           id="call-receive"
-          className={status ? "blue-call" : "red-call"}
+          className={status ? "green-call" : "red-call"}
         />
       )}
     </>

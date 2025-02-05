@@ -9,6 +9,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import Slider from "@mui/material/Slider";
 import { useStore } from "../../root-store-context";
 import { twoDigitsFormat } from "../../helpers";
+import { AUTH } from "../../constants";
 
 interface IProps {
   recordId: string;
@@ -59,7 +60,7 @@ const AudioPlayer = observer(
         xhr: {
           method: "POST",
           headers: {
-            Authorization: "Bearer testtoken",
+            Authorization: AUTH,
           },
           withCredentials: true,
         },
@@ -123,6 +124,32 @@ const AudioPlayer = observer(
       }
     };
 
+    const downloadRecord = async () => {
+      const response = await fetch(
+        `https://api.skilla.ru/mango/getRecord?record=${recordId}&partnership_id=${partnerId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: AUTH,
+            "Content-Type":
+              "audio/mpeg, audio/x-mpeg, audio/x-mpeg-3, audio/mpeg3",
+            "Content-Transfer-Encoding": "binary",
+            "Content-Disposition": 'filename="record.mp3"',
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch record - ${response.statusText}`);
+      }
+      const blob: Blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link: HTMLAnchorElement = document.createElement("a");
+      link.href = objectUrl;
+      link.download = "record.mp3";
+      link.click();
+      URL.revokeObjectURL(objectUrl);
+    };
+
     return (
       <Box className="audio-player">
         <Box className="duration">
@@ -160,7 +187,7 @@ const AudioPlayer = observer(
             disabled={!currentRecordSelected}
           />
         </Box>
-        <GetAppIcon className="action" />
+        <GetAppIcon className="action" onClick={downloadRecord} />
         <CloseIcon className="action" onClick={stopRecord} />
       </Box>
     );
